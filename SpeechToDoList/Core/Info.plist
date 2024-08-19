@@ -19,5 +19,9 @@
 			</array>
 		</dict>
 	</dict>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Приложению требуется доступ к микрофону для записи голоса и преобразования его в текст.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Приложению требуется доступ к распознаванию речи для преобразования голоса в текст.</string>
 </dict>
 </plist>
