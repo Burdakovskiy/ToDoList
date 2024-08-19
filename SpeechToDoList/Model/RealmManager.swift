@@ -27,9 +27,12 @@ final class DatabaseManager {
         task.deskription = description
         task.priority = priority
         task.date = date
-        
-        try! localRealm.write {
-            localRealm.add(task)
+        do {
+            try localRealm.write {
+                localRealm.add(task)
+            }
+        } catch {
+            print("Error while writting taskObject at DatabaseManager.saveTask(): \(error.localizedDescription)")
         }
     }
     
@@ -39,8 +42,12 @@ final class DatabaseManager {
     
     func deleteTaskBy(id: ObjectId) {
         if let task = localRealm.object(ofType: TaskObject.self, forPrimaryKey: id) {
-            try! localRealm.write {
-                localRealm.delete(task)
+            do {
+                try localRealm.write {
+                    localRealm.delete(task)
+                }
+            } catch {
+                print("Error while delete task at DatabaseManager.deleteTaskBy(): \(error.localizedDescription)")
             }
         }
     }
@@ -51,17 +58,21 @@ final class DatabaseManager {
                            isComplete: Bool?,
                            date: Date?) {
         if let task = localRealm.object(ofType: TaskObject.self, forPrimaryKey: id) {
-            try! localRealm.write {
-                if let description = description {
-                    task.deskription = description
+            do {
+                try localRealm.write {
+                    if let description = description {
+                        task.deskription = description
+                    }
+                    if let priority = priority {
+                        task.priority = priority
+                    }
+                    if let isComplete = isComplete {
+                        task.isComplete = isComplete
+                    }
+                    task.date = date
                 }
-                if let priority = priority {
-                    task.priority = priority
-                }
-                if let isComplete = isComplete {
-                    task.isComplete = isComplete
-                }
-                task.date = date
+            } catch {
+                print("Error while updating task at DatabaseManager.updateTask(): \(error.localizedDescription)")
             }
         }
     }

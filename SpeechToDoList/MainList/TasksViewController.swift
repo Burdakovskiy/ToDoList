@@ -39,15 +39,17 @@ class TasksViewController: UIViewController {
     private func isCompletionButtonActionHandler(indexPath: IndexPath) {
         let task = tasks[indexPath.row]
         let newStatus = !task.isComplete
-        DispatchQueue.main.async { [weak self] in
-            guard let self else { return }
-            mainListView.reloadRow(at: indexPath)
-        }
+        
         DatabaseManager.shared.updateTask(id: task.id,
                                           description: task.deskription,
                                           priority: task.priority,
                                           isComplete: newStatus,
                                           date: task.date)
+        
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            mainListView.reloadRow(at: indexPath)
+        }
     }
     
     @objc private func addButtonTapped() {
@@ -93,6 +95,9 @@ class TasksViewController: UIViewController {
         NotificationCenter.default.removeObserver(self,
                                                   name: .taskAdded,
                                                   object: nil)
+        NotificationCenter.default.removeObserver(self,
+                                                  name: .taskUpdated,
+                                                  object: nil)
     }
 }
 
@@ -133,7 +138,7 @@ extension TasksViewController: UITableViewDataSource {
             cell.configure(withTask: currentTask)
             cell.isCompletionButtonAction = {[weak self] in
                 guard let self else { return }
-                self.isCompletionButtonActionHandler(indexPath: indexPath)
+                isCompletionButtonActionHandler(indexPath: indexPath)
             }
             return cell
         }

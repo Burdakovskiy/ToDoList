@@ -145,9 +145,6 @@ final class SetupTaskViewController: UIViewController {
         var dateTime: Date? {
             return isDateSwitchOn ? taskDateAndTime : nil
         }
-//        print("isdateswitchon : \(isDateSwitchOn)")
-//        print("taskDateAndTime : \(taskDateAndTime)")
-//        print("dateTime : \(dateTime)")
         if task == nil {
             DatabaseManager.shared.saveTask(description: description,
                                             priority: priority,
@@ -183,7 +180,7 @@ final class SetupTaskViewController: UIViewController {
         content.body = description
         let triggerDate = Calendar.current.dateComponents([.year,.month,.day,.hour,.minute,.second,], from: date)
         let trigger = UNCalendarNotificationTrigger(dateMatching: triggerDate, repeats: false)
-        let request = UNNotificationRequest(identifier: "notification", content: content, trigger: trigger)
+        let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
         UNUserNotificationCenter.current().add(request, withCompletionHandler: nil)
     }
     
