@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		68BC23602C73866100D69B83 /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68BC235F2C73866100D69B83 /* NotificationManager.swift */; };
+		68BC23642C73882200D69B83 /* SpeechRecognizerManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68BC23632C73882200D69B83 /* SpeechRecognizerManager.swift */; };
 		68E0283D2C734197005498DC /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68E0283C2C734197005498DC /* AppDelegate.swift */; };
 		68E0283F2C734197005498DC /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68E0283E2C734197005498DC /* SceneDelegate.swift */; };
 		68E028412C734197005498DC /* TasksViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68E028402C734197005498DC /* TasksViewController.swift */; };
@@ -25,6 +27,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		68BC235F2C73866100D69B83 /* NotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationManager.swift; sourceTree = "<group>"; };
+		68BC23632C73882200D69B83 /* SpeechRecognizerManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechRecognizerManager.swift; sourceTree = "<group>"; };
 		68E028392C734197005498DC /* SpeechToDoList.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SpeechToDoList.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		68E0283C2C734197005498DC /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		68E0283E2C734197005498DC /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -106,6 +110,8 @@
 			isa = PBXGroup;
 			children = (
 				68E028592C7345A6005498DC /* RealmManager.swift */,
+				68BC235F2C73866100D69B83 /* NotificationManager.swift */,
+				68BC23632C73882200D69B83 /* SpeechRecognizerManager.swift */,
 				68E0285B2C7345CD005498DC /* Task.swift */,
 				68E0285F2C73471D005498DC /* Extensions */,
 			);
@@ -228,9 +234,11 @@
 				68E028412C734197005498DC /* TasksViewController.swift in Sources */,
 				68E028682C7347E7005498DC /* SetupTaskViewController.swift in Sources */,
 				68E0285A2C7345A6005498DC /* RealmManager.swift in Sources */,
+				68BC23642C73882200D69B83 /* SpeechRecognizerManager.swift in Sources */,
 				68E0286B2C734803005498DC /* SetupTaskView.swift in Sources */,
 				68E028652C7347CC005498DC /* TaskTableViewCell.swift in Sources */,
 				68E0285C2C7345CD005498DC /* Task.swift in Sources */,
+				68BC23602C73866100D69B83 /* NotificationManager.swift in Sources */,
 				68E0283D2C734197005498DC /* AppDelegate.swift in Sources */,
 				68E028712C735518005498DC /* UITableViewCell+Extension.swift in Sources */,
 				68E028612C734793005498DC /* MainListView.swift in Sources */,

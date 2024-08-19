@@ -11,14 +11,10 @@ import Speech
 
 final class SetupTaskViewController: UIViewController {
     
-//MARK: - Properties
-
+    //MARK: - Properties
+    
     private let setupTaskView = SetupTaskView()
     private let priorityTypes = Priority.getAllCases
-    private let speechRecognizer = SFSpeechRecognizer(locale: Locale(identifier: "ru-RU"))
-    private var recognitionRequest: SFSpeechAudioBufferRecognitionRequest?
-    private var recognitionTask: SFSpeechRecognitionTask?
-    private let audioEngine = AVAudioEngine()
     private var taskDescription = ""
     private var taskDateAndTime: Date?
     private var taskPriority = Priority.low
@@ -30,7 +26,7 @@ final class SetupTaskViewController: UIViewController {
     
     var task: TaskObject?
     
-//MARK: - Functions
+    //MARK: - Functions
     
     private func getSelectedPriority() -> Priority {
         let selectedRowIndex = setupTaskView.getPickerSelectedRow(in: 0)
@@ -118,26 +114,24 @@ final class SetupTaskViewController: UIViewController {
         }
     }
     
-    @objc private func timeStackTapped() {
-        getUserPermission()
-    }
-    
-    @objc private func isOnDatePickerSwitcherChanged() {
-        isDateSwitchOn.toggle()
-        print(isDateSwitchOn)
-    }
-    
-    @objc private func microphoneButtonPressed() {
-        requestSpeechAuthorization()
-        if audioEngine.isRunning {
-            audioEngine.stop()
-            recognitionRequest?.endAudio()
-            setupTaskView.updateMicroButton(isActive: false)
-        } else {
-            startRecording()
-            setupTaskView.updateMicroButton(isActive: true)
+    private func requestSpeechAuthorization() {
+        SpeechRecognizerManager.shared.requestSpeechAuthorization { [weak self] isAuthorized in
+            guard let self else { return }
+            setupTaskView.updateMicrophoneButton(enabled: isAuthorized)
         }
     }
+    
+    private func startRecording() {
+        SpeechRecognizerManager.shared.startRecording {[weak self] text in
+            guard let self else { return }
+            setupTaskView.setTaskDescription(text: text)
+        }
+    }
+    
+    private func stopRecording() {
+        SpeechRecognizerManager.shared.stopRecording()
+    }
+    
     
     @objc private func saveButtonTapped() {
         guard let description = getTaskDescription() else { return }
@@ -155,7 +149,7 @@ final class SetupTaskViewController: UIViewController {
                 self.dismiss(animated: true)
             }
             if taskDateAndTime != nil && isDateSwitchOn == true {
-                scheduleNotification(at: taskDateAndTime!, with: description)
+                NotificationManager.scheduleNotification(at: taskDateAndTime!, with: description)
             }
         } else if let task {
             DatabaseManager.shared.updateTask(id: task.id,
@@ -169,19 +163,9 @@ final class SetupTaskViewController: UIViewController {
                 self.dismiss(animated: true)
             }
             if taskDateAndTime != nil && isDateSwitchOn == true{
-                scheduleNotification(at: taskDateAndTime!, with: description)
+                NotificationManager.scheduleNotification(at: taskDateAndTime!, with: description)
             }
         }
-    }
-    
-    func scheduleNotification(at date: Date, with description: String) {
-        let content = UNMutableNotificationContent()
-        content.title = "To Do List"
-        content.body = description
-        let triggerDate = Calendar.current.dateComponents([.year,.month,.day,.hour,.minute,.second,], from: date)
-        let trigger = UNCalendarNotificationTrigger(dateMatching: triggerDate, repeats: false)
-        let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
-        UNUserNotificationCenter.current().add(request, withCompletionHandler: nil)
     }
     
     override func loadView() {
@@ -196,6 +180,7 @@ final class SetupTaskViewController: UIViewController {
             configurateController(with: task)
         }
         checkDatePickerStatus()
+        requestSpeechAuthorization()
     }
 }
 
@@ -206,15 +191,21 @@ extension SetupTaskViewController: SetupButtonActionsProtocol {
     }
     
     func timeStackAction() {
-        timeStackTapped()
+        getUserPermission()
     }
     
     func microphoneButtonAction() {
-        microphoneButtonPressed()
+        if SpeechRecognizerManager.shared.isRecording() {
+            stopRecording()
+            setupTaskView.updateMicroButton(isActive: false)
+        } else {
+            startRecording()
+            setupTaskView.updateMicroButton(isActive: true)
+        }
     }
     
     func isOnDatePickerSwitcherAction() {
-        isOnDatePickerSwitcherChanged()
+        isDateSwitchOn.toggle()
     }
 }
 
@@ -250,84 +241,5 @@ extension SetupTaskViewController: DatePickerActionsProtocol {
     func cancelButtonAction() {
         setupTaskView.updateDatePicker(hidden: true)
         setupTaskView.hideBackgroundView()
-    }
-}
-
-//MARK: - SetupTaskViewController
-private extension SetupTaskViewController {
-    func startRecording() {
-        if recognitionTask != nil {
-            recognitionTask?.cancel()
-            recognitionTask = nil
-        }
-        
-        let audioSession = AVAudioSession.sharedInstance()
-        do {
-            try audioSession.setCategory(.record, mode: .measurement, options: .duckOthers)
-            try audioSession.setActive(true, options: .notifyOthersOnDeactivation)
-        } catch {
-            print("AudioSession properties weren't set because of an error.")
-        }
-        
-        recognitionRequest = SFSpeechAudioBufferRecognitionRequest()
-        
-        guard let recognitionRequest else {
-            fatalError("Unable to create an SFSpeechAudioBufferRecognitionRequest object")
-        }
-        
-        let inputNode = audioEngine.inputNode
-        
-        recognitionRequest.shouldReportPartialResults = true
-        recognitionTask = speechRecognizer?.recognitionTask(with: recognitionRequest) {[weak self] result, error in
-            guard let self else { return }
-            var isFinal = false
-            
-            if let result {
-                let text = result.bestTranscription.formattedString
-                setupTaskView.setTaskDescription(text: text)
-                isFinal = result.isFinal
-            }
-            
-            if error != nil || isFinal {
-                self.audioEngine.stop()
-                inputNode.removeTap(onBus: 0)
-                
-                self.recognitionRequest = nil
-                self.recognitionTask = nil
-                
-                setupTaskView.updateMicrophoneButton(enabled: true)
-                print("Error or isFinal true, start listening")
-            }
-        }
-        
-        let recordingFormat = inputNode.outputFormat(forBus: 0)
-        inputNode.installTap(onBus: 0, bufferSize: 1024, format: recordingFormat) {[weak self] buffer, when in
-            guard let self else { return }
-            self.recognitionRequest?.append(buffer)
-        }
-        
-        audioEngine.prepare()
-        
-        do {
-            try audioEngine.start()
-        } catch {
-            print("audioEngine couldn't start because of an error.")
-        }
-    }
-    
-    func requestSpeechAuthorization() {
-        SFSpeechRecognizer.requestAuthorization { authStatus in
-            OperationQueue.main.addOperation {[weak self] in
-                guard let self else { return }
-                switch authStatus {
-                case .authorized:
-                    setupTaskView.updateMicrophoneButton(enabled: true)
-                case .denied, .restricted, .notDetermined:
-                    setupTaskView.updateMicrophoneButton(enabled: false)
-                @unknown default:
-                    fatalError("Unknown auth status")
-                }
-            }
-        }
     }
 }
